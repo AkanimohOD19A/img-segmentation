@@ -17,8 +17,8 @@ st.write("Image segmentation is a critical task in computer vision that involves
          "is to build a practical understanding and implementation of the powerful and light YOLOv8 "
          "for image segmentation and object detection")
 
-url = "https://www.example.com"
-link = f'<a href="{url}">Click here</a>'
+url = "https://github.com/AkanimohOD19A/img-segmentation"
+link = f'<a href="{url}">GitHub Repository here</a>'
 st.markdown(link, unsafe_allow_html=True)
 
 st.divider()
