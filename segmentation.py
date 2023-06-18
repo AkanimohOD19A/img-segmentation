@@ -45,7 +45,6 @@ if uploaded_file is not None:
 else:
     st.sidebar.write("You are using a placeholder image, Upload your Image (.jpg for now) to explore")
 
-
 results = model(img_file)
 img = cv2.imread(img_file)
 names_list = []
@@ -85,11 +84,11 @@ st.sidebar.divider()
 st.sidebar.markdown('')
 st.sidebar.markdown('#### Distribution of identified items')
 
+# Boolean to resize the dataframe, stored as a session state variable
+st.sidebar.checkbox("Use container width", value=False, key="use_container_width")
 df_x = pd.DataFrame(names_list)
-summary_table = df_x[0].value_counts().rename_axis('unique_values').reset_index(name='counts').T
-st.sidebar.dataframe(summary_table)
-
-
+summary_table = df_x[0].value_counts().rename_axis('unique_values').reset_index(name='counts')
+st.sidebar.dataframe(summary_table, use_container_width=st.session_state.use_container_width)
 
 st.markdown('')
 st.markdown('')
