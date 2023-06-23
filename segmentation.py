@@ -1,5 +1,6 @@
 import os
 import cv2
+from PIL import Image
 import pandas as pd
 import streamlit as st
 from ultralytics import YOLO
@@ -21,37 +22,92 @@ url = "https://github.com/AkanimohOD19A/img-segmentation"
 link = f'<a href="{url}">GitHub Repository here</a>'
 st.markdown(link, unsafe_allow_html=True)
 
+def save_uploadedfile(uploadedfile):
+    with open(os.path.join("./media-directory/", "selfie.jpg"), "wb") as f:
+        f.write(uploadedfile.getbuffer())
+
+def convert_to_jpg(uploaded_image):
+    im = Image.open(uploaded_image)
+    if im.mode in ("RGBA", "P"):
+        im = im.convert("RGB")
+    uploaded_image_path = os.path.join(parent_media_path, "uploaded_image.jpg")
+    im.save(uploaded_image_path)
+
 st.divider()
 
 st.markdown('')
 st.markdown('##### Segmented Pieces')
 
+## Placeholder Image
+parent_media_path = "media-directory"
 img_file = 'bus.jpg'
-# uploaded_file = st.sidebar.file_uploader("Upload your Image here", type=['png', 'jpeg', 'jpg'])
-uploaded_file = st.sidebar.file_uploader("Drop a JPG file", accept_multiple_files=False, type='jpg')
-if uploaded_file is not None:
-    # uploaded_file.name = "uploaded_image"
-    file_details = {"FileName": uploaded_file.name, "FileType": uploaded_file.type}
 
-    parent_media_path = "media-directory"
-    new_file_name = "uploaded_image.jpg"
-    with open(os.path.join(parent_media_path, new_file_name), "wb") as f:
-        f.write(uploaded_file.getbuffer())
+## Application States
+APPLICATION_MODE = st.sidebar.selectbox("Our Options",
+                                        ["Take Picture", "Upload Picture"]
+                                        )
 
-    img_file = os.path.join(parent_media_path, new_file_name)
+## Selfie Image
+if APPLICATION_MODE == "Take Picture":
+    st.sidebar.write(
+        """
+            A computer aided application that segments your input image, built on 
+            the powerful YOLOv8 object detection algorithm developed by *ultralytics*.
 
-    st.sidebar.success("File saved successfully")
-    print(f"File saved successfully to {os.path.abspath(os.path.join(parent_media_path, new_file_name))}")
-else:
-    st.sidebar.write("You are using a placeholder image, Upload your Image (.jpg for now) to explore")
+            Simply take a selfie and it gets segmentated in real time.
+        """
+    )
+    picture = st.camera_input("Take a picture")
+    st.markdown('')
+    if picture:
+        st.sidebar.divider()
+        st.sidebar.image(picture, caption="Selfie")
+        if st.button("Segment!"):
+            ## Function to save image
+            save_uploadedfile(picture)
+            st.sidebar.success("Saved File")
+            selfie_img = os.path.join(parent_media_path, "/selfie.jpg")
+        st.write("Click on **Clear photo** to retake picture")
+        img_file = './media-directory/selfie.jpg'
+    st.divider()
 
+elif APPLICATION_MODE == "Upload Picture":
+    st.sidebar.write(
+        """
+            A computer aided application that segments your input image, built on 
+            the powerful YOLOv8 object detection algorithm developed by *ultralytics*.
+
+            Simply drop your image and it gets segmentated in real time.
+        """
+    )
+    st.sidebar.divider()
+    # uploaded_file = st.sidebar.file_uploader("Upload your Image here", type=['png', 'jpeg', 'jpg'])
+    uploaded_file = st.sidebar.file_uploader("Drop a JPG/PNG file", accept_multiple_files=False, type=['jpg', 'png'])
+    if uploaded_file is not None and uploaded_file.type != ".jpg":
+        convert_to_jpg(uploaded_file)
+    if uploaded_file is not None:
+        file_details = {"FileName": uploaded_file.name, "FileType": uploaded_file.type}
+        new_file_name = "uploaded_image.jpg"
+        with open(os.path.join(parent_media_path, new_file_name), "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        img_file = os.path.join(parent_media_path, new_file_name)
+        st.sidebar.success("File saved successfully")
+        print(f"File saved successfully to {os.path.abspath(os.path.join(parent_media_path, new_file_name))}")
+    else:
+        st.sidebar.write("You are using a placeholder image, Upload your Image (.jpg for now) to explore")
+
+# def make_segmentation(img_file):
 results = model(img_file)
 img = cv2.imread(img_file)
 names_list = []
 for result in results:
     boxes = result.boxes.cpu().numpy()
     numCols = len(boxes)
-    cols = st.columns(numCols)
+    if numCols > 0:
+        cols = st.columns(numCols)
+    else:
+        print(f"Number of Boxes found: {numCols}")
+        st.warning("Unable to id Distinct items - Please retry with a clearer Image")
     for box in boxes:
         r = box.xyxy[0].astype(int)
         rect = cv2.rectangle(img, r[:2], r[2:], (255, 55, 255), 2)
@@ -86,9 +142,12 @@ st.sidebar.markdown('#### Distribution of identified items')
 
 # Boolean to resize the dataframe, stored as a session state variable
 st.sidebar.checkbox("Use container width", value=False, key="use_container_width")
-df_x = pd.DataFrame(names_list)
-summary_table = df_x[0].value_counts().rename_axis('unique_values').reset_index(name='counts')
-st.sidebar.dataframe(summary_table, use_container_width=st.session_state.use_container_width)
+if len(names_list) > 0:
+    df_x = pd.DataFrame(names_list)
+    summary_table = df_x[0].value_counts().rename_axis('unique_values').reset_index(name='counts')
+    st.sidebar.dataframe(summary_table, use_container_width=st.session_state.use_container_width)
+else:
+    st.sidebar.warning("Unable to id Distinct items - Please retry with a clearer Image")
 
 st.markdown('')
 st.markdown('')
