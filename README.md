@@ -137,6 +137,8 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 ---
 
 ## 📬 Contact
+Email: [danielamahtoday@gmail.com]
 
-Created by [AfroLogicInsect](https://dev.to/afrologicinsect)  
+Blog: [AfroLogicInsect](https://dev.to/afrologicinsect)  
 GitHub: [AkanimohOD19A](https://github.com/AkanimohOD19A)
+Website: [https://akandaniel.netlify.app]
