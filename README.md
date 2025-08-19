@@ -126,7 +126,7 @@ ffmpeg
 
 | Original Image | Segmented Output |
 |----------------|------------------|
-| ![Original](img/bus.jpg) | ![Segmented](img/bus_segmented.jpg) |
+| ![Original](img/bus.JPG) | ![Segmented](img/bus_segmented.jpg) |
 
 ---
 
